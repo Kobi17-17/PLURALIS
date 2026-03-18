@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI Ethik-Architektur v4 — PLURALIS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap');
+
+  /* ── Themes ── */
+  [data-theme="dark"] {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8a96e;
+    --accent3: #6ec87a;
+    --hdm: #e8c547;
+    --text: #e8e0d0;
+    --muted: #666;
+    --toggle-bg: #222;
+    --pluralis-bg: #0a1a0a;
+    --pluralis-border: #1a3a1a;
+    --node00-bg: #0e0e1a;
+  }
+
+  [data-theme="light"] {
+    --bg: #f5f2ec;
+    --surface: #ffffff;
+    --surface2: #f0ece4;
+    --border: #d8d0bc;
+    --accent: #8a6020;
+    --accent3: #2a7a40;
+    --hdm: #8a7000;
+    --text: #1a1a1a;
+    --muted: #888;
+    --toggle-bg: #e0d8c8;
+    --pluralis-bg: #eef5ee;
+    --pluralis-border: #b0d0b0;
+    --node00-bg: #eeeef8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ── Toggle Button ── */
+  .theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.12em;
+    transition: all 0.2s;
+    z-index: 100;
+  }
+
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Print Button ── */
+  .print-btn {
+    position: fixed;
+    top: 20px;
+    right: 110px;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.12em;
+    transition: all 0.2s;
+    z-index: 100;
+  }
+
+  .print-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .version-badge {
+    font-size: 0.6rem;
+    color: var(--hdm);
+    letter-spacing: 0.2em;
+    border: 1px solid var(--hdm);
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-bottom: 48px;
+    opacity: 0.8;
+  }
+
+  .hint {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    opacity: 0.5;
+    text-align: center;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    max-width: 900px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Ebene 00 ── */
+  .node-00 {
+    width: 100%;
+    background: var(--node00-bg);
+    border: 1px solid #3a3a6a;
+    border-radius: 2px;
+    padding: 20px 24px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.3s, transform 0.2s;
+    animation: fadeSlide 0.6s ease both;
+    animation-delay: 0s;
+  }
+
+  .node-00:hover { transform: translateX(4px); }
+  .node-00.active { border-color: #8888cc; background: var(--surface2); }
+  .node-00::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: #8888cc;
+    border-radius: 2px 0 0 2px;
+  }
+
+  .node-00-badge {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 0.58rem;
+    color: #8888cc;
+    letter-spacing: 0.2em;
+  }
+
+  .node-00 .node-detail { display: none; }
+  .node-00.active .node-detail { display: block; }
+  .node-00 .node-detail .highlight { color: #8888cc; opacity: 0.9; }
+
+  /* ── Nodes ── */
+  .node {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 20px 24px;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.3s, transform 0.2s;
+    animation: fadeSlide 0.6s ease both;
+  }
+
+  .node:hover { transform: translateX(4px); }
+  .node.active { border-color: var(--node-color); background: var(--surface2); }
+
+  .node::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--node-color);
+    border-radius: 2px 0 0 2px;
+  }
+
+  .node.hdm-connected::after {
+    content: '';
+    position: absolute;
+    right: -33px; top: 50%;
+    width: 32px; height: 1px;
+    background: var(--hdm);
+    opacity: 0.25;
+    transition: opacity 0.3s;
+  }
+
+  .node.hdm-connected.active::after { opacity: 0.7; }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .node-number { font-size: 0.6rem; color: var(--node-color); letter-spacing: 0.2em; opacity: 0.8; }
+  .node-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 0.95rem; color: var(--node-color); }
+  .node-icon { margin-left: auto; font-size: 1.1rem; opacity: 0.6; }
+
+  .node-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  .tag {
+    font-size: 0.6rem; padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px; color: var(--muted);
+    letter-spacing: 0.06em; transition: all 0.2s;
+  }
+
+  .node:hover .tag, .node.active .tag,
+  .node-00:hover .tag, .node-00.active .tag {
+    border-color: var(--node-color, #8888cc);
+    color: var(--node-color, #8888cc);
+    opacity: 0.7;
+  }
+
+  .node-00:hover .tag, .node-00.active .tag {
+    border-color: #8888cc; color: #8888cc;
+  }
+
+  .node-detail {
+    font-size: 0.68rem; color: var(--muted);
+    line-height: 1.75; margin-top: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; display: none;
+  }
+
+  .node.active .node-detail { display: block; }
+  .node-detail .highlight { color: var(--node-color); opacity: 0.9; }
+
+  /* ── Arrows ── */
+  .arrow-wrap { display: flex; flex-direction: column; align-items: center; padding: 3px 0; }
+  .arrow-line { width: 1px; height: 24px; background: linear-gradient(to bottom, var(--from-color), var(--to-color)); opacity: 0.4; }
+  .arrow-head { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 7px solid var(--to-color); opacity: 0.4; }
+  .arrow-label { font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+
+  /* ── User / Output ── */
+  .user-node, .output-node {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px; border-radius: 2px; width: 100%;
+  }
+  .user-node { margin-bottom: 4px; border: 1px dashed var(--border); }
+  .output-node { margin-top: 4px; border: 1px dashed #6ec87a44; }
+
+  .user-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
+  .output-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite 1s; flex-shrink: 0; }
+  .user-label { font-size: 0.68rem; color: var(--accent); letter-spacing: 0.1em; }
+  .output-label { font-size: 0.68rem; color: var(--accent3); letter-spacing: 0.1em; }
+
+  /* ── HDM Sidebar ── */
+  .hdm-sidebar { width: 210px; flex-shrink: 0; position: sticky; top: 48px; margin-left: 32px; }
+
+  .hdm-block {
+    background: var(--node00-bg);
+    border: 1px solid var(--hdm);
+    border-radius: 2px; padding: 20px 16px;
+    position: relative;
+    animation: fadeSlide 0.8s ease both;
+    animation-delay: 0.05s;
+    transition: box-shadow 0.4s, background 0.3s;
+  }
+
+  .hdm-block::before {
+    content: 'HDM';
+    position: absolute; top: -10px; left: 14px;
+    background: var(--bg); padding: 0 8px;
+    font-size: 0.6rem; color: var(--hdm); letter-spacing: 0.25em;
+  }
+
+  .hdm-block.glow { box-shadow: 0 0 18px 4px #e8c54755; }
+
+  .hdm-title { font-family: 'Fraunces', serif; font-size: 0.85rem; color: var(--hdm); margin-bottom: 10px; line-height: 1.3; }
+  .hdm-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.8; margin-bottom: 14px; }
+  .hdm-desc span { color: var(--hdm); opacity: 0.85; }
+
+  .hdm-arrows { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .hdm-arrow-item { display: flex; align-items: center; gap: 8px; font-size: 0.6rem; color: var(--muted); }
+  .hdm-arrow-item::before { content: '→'; color: var(--hdm); opacity: 0.6; flex-shrink: 0; }
+
+  .hdm-gremium { margin-top: 16px; background: var(--bg); border: 1px dashed var(--border); border-radius: 2px; padding: 12px; }
+  .hdm-gremium-title { font-size: 0.58rem; color: var(--hdm); letter-spacing: 0.15em; margin-bottom: 8px; opacity: 0.7; }
+
+  .gremium-member { font-size: 0.6rem; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; position: relative; cursor: default; }
+  .gremium-member:last-child { border-bottom: none; }
+  .gremium-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--hdm); opacity: 0.5; flex-shrink: 0; }
+
+  .gremium-member .tooltip {
+    display: none; position: absolute;
+    left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 3px; padding: 7px 10px;
+    font-size: 0.57rem; color: var(--text);
+    white-space: normal; width: 170px; z-index: 20;
+    line-height: 1.6; pointer-events: none;
+  }
+  .gremium-member:hover .tooltip { display: block; }
+
+  /* ── Feedback SVG ── */
+  .feedback-svg-wrap { width: 100%; max-width: 900px; position: relative; height: 60px; margin-top: -4px; }
+  .feedback-svg-wrap svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+
+  /* ── PLURALIS Overview ── */
+  .pluralis-section {
+    width: 100%; max-width: 900px;
+    margin-top: 48px;
+    border: 1px solid var(--pluralis-border);
+    border-radius: 2px;
+    background: var(--pluralis-bg);
+    padding: 28px 28px 24px;
+    position: relative;
+    animation: fadeSlide 0.8s ease both;
+  }
+
+  .pluralis-section::before {
+    content: 'PLURALIS — GESAMTÜBERSICHT';
+    position: absolute; top: -10px; left: 20px;
+    background: var(--bg); padding: 0 10px;
+    font-size: 0.6rem; color: var(--accent3);
+    letter-spacing: 0.2em;
+  }
+
+  .pluralis-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem; font-weight: 300;
+    color: var(--accent3); margin-bottom: 6px;
+  }
+
+  .pluralis-desc {
+    font-size: 0.65rem; color: var(--muted);
+    line-height: 1.8; margin-bottom: 24px;
+  }
+
+  .pluralis-layers {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+
+  .pluralis-layer {
+    flex: 1; min-width: 160px;
+    border: 1px solid var(--pluralis-border);
+    border-radius: 2px; padding: 14px 16px;
+    background: var(--bg);
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+
+  .pluralis-layer:hover { border-color: var(--accent3); }
+
+  .layer-abbr {
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    color: var(--accent3); margin-bottom: 6px;
+  }
+
+  .layer-name {
+    font-family: 'Fraunces', serif;
+    font-size: 0.85rem; color: var(--text);
+    margin-bottom: 6px; line-height: 1.3;
+  }
+
+  .layer-desc { font-size: 0.6rem; color: var(--muted); line-height: 1.7; }
+
+  .pluralis-hdm-note {
+    margin-top: 16px;
+    border-top: 1px solid var(--pluralis-border);
+    padding-top: 14px;
+    font-size: 0.62rem; color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .pluralis-hdm-note span { color: var(--hdm); }
+
+  /* ── Bottom notes ── */
+  .feedback-note {
+    margin-top: 28px; max-width: 900px; width: 100%;
+    border: 1px solid var(--border); border-radius: 2px;
+    padding: 16px 22px; display: flex; gap: 18px; align-items: flex-start;
+  }
+
+  .feedback-icon { font-size: 1.3rem; opacity: 0.45; flex-shrink: 0; margin-top: 2px; }
+
+  .feedback-text { font-size: 0.66rem; color: var(--muted); line-height: 1.85; }
+  .feedback-text strong { color: var(--accent); font-weight: normal; font-family: 'Fraunces', serif; }
+
+  .footer-note {
+    margin-top: 28px; max-width: 900px; width: 100%;
+    font-size: 0.63rem; color: var(--muted); line-height: 2;
+    border-top: 1px solid var(--border); padding-top: 18px;
+    text-align: center; letter-spacing: 0.04em;
+  }
+  .footer-note em { color: var(--accent); font-style: normal; }
+  .footer-note strong { color: var(--hdm); font-weight: normal; }
+
+  /* ── Animations ── */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.3; transform: scale(0.6); }
+  }
+
+  .node:nth-child(1)  { animation-delay: 0.05s; }
+  .node:nth-child(3)  { animation-delay: 0.15s; }
+  .node:nth-child(5)  { animation-delay: 0.25s; }
+  .node:nth-child(7)  { animation-delay: 0.35s; }
+  .node:nth-child(9)  { animation-delay: 0.45s; }
+
+  /* ── Print ── */
+  @media print {
+    .theme-toggle, .print-btn { display: none; }
+    body { padding: 20px; background: white !important; color: black !important; }
+    [data-theme="dark"] {
+      --bg: white; --surface: #f8f8f8; --surface2: #f0f0f0;
+      --border: #ccc; --text: #111; --muted: #666;
+      --accent: #8a6020; --accent3: #2a7a40; --hdm: #8a7000;
+      --toggle-bg: #eee; --pluralis-bg: #f0f8f0;
+      --pluralis-border: #aaa; --node00-bg: #f0f0f8;
+    }
+    .hdm-block::before, .pluralis-section::before, .node-00-badge { background: white !important; }
+    .node, .node-00, .hdm-block, .pluralis-layer { page-break-inside: avoid; }
+    .feedback-svg-wrap { display: none; }
+  }
+
+  @media (max-width: 660px) {
+    .layout { flex-direction: column; }
+    .hdm-sidebar { width: 100%; position: static; margin-left: 0; margin-top: 28px; }
+    .node.hdm-connected::after { display: none; }
+    .feedback-svg-wrap { display: none; }
+    .gremium-member .tooltip { left: 0; top: auto; bottom: calc(100% + 6px); transform: none; width: 200px; }
+    .theme-toggle { top: 10px; right: 10px; }
+    .print-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()">☀ HELL / DUNKEL</button>
+<button class="print-btn" onclick="window.print()">⎙ DRUCKEN</button>
+
+<h1>KI Ethik-Architektur</h1>
+<p class="subtitle">Vollständiges Schema — Christian Schmidhuber &amp; KOBI</p>
+<span class="version-badge">v4 — PLURALIS Edition</span>
+<p class="hint">↓ Klicke auf eine Station · Hover über Gremium-Mitglieder</p>
+
+<div class="layout">
+
+  <div class="pipeline" id="pipeline">
+
+    <div class="user-node">
+      <div class="user-dot"></div>
+      <span class="user-label">Mensch / User-Input</span>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#c8a96e;--to-color:#8888cc;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+    </div>
+
+    <!-- Ebene 00 -->
+    <div class="node-00" onclick="toggle00(this)">
+      <span class="node-00-badge">EBENE 00 · GRÜNDUNGSSCHICHT</span>
+      <div class="node-header">
+        <span class="node-number" style="color:#8888cc;">00</span>
+        <span class="node-title" style="color:#8888cc;">Philosophische Legitimation</span>
+        <span class="node-icon">🌍</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Pluralismus</span>
+        <span class="tag">Kulturelle Vielfalt</span>
+        <span class="tag">Goldene Regel</span>
+        <span class="tag">Kant</span>
+      </div>
+      <div class="node-detail">
+        Bevor Technik beginnt, steht eine Frage: <span class="highlight">Wer hat das Recht, Ethik für alle zu definieren?</span><br><br>
+        Die Antwort von PLURALIS: niemand alleine. Nicht der Westen, nicht eine Regierung, nicht ein Konzern. Ethik entsteht im Dialog zwischen Kulturen, nicht durch Dominanz einer Perspektive.<br><br>
+        Diese Schicht verankert das gesamte System in einer Haltung: <span class="highlight">Ich gehöre zu allen Menschen.</span> Daraus folgt alles andere.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#8888cc;--to-color:#6e9fc8;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+      <span class="arrow-label">legitimiert</span>
+    </div>
+
+    <!-- 01 -->
+    <div class="node hdm-connected" style="--node-color:#6e9fc8;" onclick="toggle(this)">
+      <div class="node-header">
+        <span class="node-number">01</span>
+        <span class="node-title">Input-Gateway</span>
+        <span class="node-icon">🚪</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Authentifizierung</span>
+        <span class="tag">Prompt-Filter</span>
+        <span class="tag">Vorprüfung</span>
+      </div>
+      <div class="node-detail">
+        Der erste Wächter. <span class="highlight">Wer fragt? Darf diese Person das?</span> Enthält die Anfrage offensichtlich schädliche Inhalte?<br><br>
+        Schnell, regelbasiert, mechanisch. Die Filterregeln kommen direkt aus dem HDM, das durch Ebene 00 legitimiert ist.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#6e9fc8;--to-color:#c8a96e;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+      <span class="arrow-label">gefiltert</span>
+    </div>
+
+    <!-- 02 -->
+    <div class="node" style="--node-color:#c8a96e;" onclick="toggle(this)">
+      <div class="node-header">
+        <span class="node-number">02</span>
+        <span class="node-title">Core Model</span>
+        <span class="node-icon">🧠</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Sprache</span>
+        <span class="tag">Reasoning</span>
+        <span class="tag">RLHF</span>
+      </div>
+      <div class="node-detail">
+        Das eigentliche Sprachmodell. Trainiert auf menschlichem Feedback, mit eingebetteten Werten, aber <span class="highlight">nicht unfehlbar</span>.<br><br>
+        Stärke: Kontext verstehen, nuanciert antworten.<br>
+        Schwäche: Kann halluzinieren, getäuscht werden.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#c8a96e;--to-color:#6ec87a;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+      <span class="arrow-label">Rohausgabe</span>
+    </div>
+
+    <!-- 03 -->
+    <div class="node hdm-connected" style="--node-color:#6ec87a;" onclick="toggle(this)">
+      <div class="node-header">
+        <span class="node-number">03</span>
+        <span class="node-title">Ethik-Engine</span>
+        <span class="node-icon">⚖️</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Regelprüfung</span>
+        <span class="tag">Risikobewertung</span>
+        <span class="tag">Kontext</span>
+      </div>
+      <div class="node-detail">
+        Die wichtigste Station. Extern vom Modell, unabhängig prüfbar.<br><br>
+        <span class="highlight">Ihre Regeln kommen aus dem HDM</span>, das durch das internationale Gremium legitimiert ist, das wiederum auf Ebene 00 gründet.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#6ec87a;--to-color:#c8a96e;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+      <span class="arrow-label">bewertet</span>
+    </div>
+
+    <!-- 04 -->
+    <div class="node hdm-connected" style="--node-color:#c8a96e;" onclick="toggle(this)">
+      <div class="node-header">
+        <span class="node-number">04</span>
+        <span class="node-title">Policy-Enforcer</span>
+        <span class="node-icon">🛡️</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Blockieren</span>
+        <span class="tag">Modifizieren</span>
+        <span class="tag">Eskalieren</span>
+      </div>
+      <div class="node-detail">
+        Drei Möglichkeiten:<br><br>
+        <span class="highlight">Blockieren</span> — Ausgabe wird verhindert.<br>
+        <span class="highlight">Modifizieren</span> — Ausgabe wird angepasst.<br>
+        <span class="highlight">Eskalieren</span> — Ein Mensch muss entscheiden.<br><br>
+        Bei kritischen Entscheidungen: Pflicht zur Eskalation, verankert im HDM.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#c8a96e;--to-color:#9b6ec8;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+      <span class="arrow-label">freigegeben</span>
+    </div>
+
+    <!-- 05 -->
+    <div class="node hdm-connected" style="--node-color:#9b6ec8;" onclick="toggle(this)">
+      <div class="node-header">
+        <span class="node-number">05</span>
+        <span class="node-title">Audit &amp; Monitoring</span>
+        <span class="node-icon">📋</span>
+      </div>
+      <div class="node-tags">
+        <span class="tag">Immutable Log</span>
+        <span class="tag">Anomalie</span>
+        <span class="tag">Transparenz</span>
+      </div>
+      <div class="node-detail">
+        Alles wird protokolliert, unveränderlich. Wie ein Flugschreiber.<br><br>
+        <span class="highlight">Rechenschaftspflicht</span> entsteht nicht durch gute Absichten, sondern durch lückenlose Nachvollziehbarkeit.<br><br>
+        Die Logs fließen zurück ans HDM-Gremium, das daraus lernt und das Modul weiterentwickelt.
+      </div>
+    </div>
+
+    <div class="arrow-wrap" style="--from-color:#9b6ec8;--to-color:#6ec87a;">
+      <div class="arrow-line"></div><div class="arrow-head"></div>
+    </div>
+
+    <div class="output-node">
+      <div class="output-dot"></div>
+      <span class="output-label">Ausgabe an den Menschen</span>
+    </div>
+
+  </div>
+
+  <!-- HDM Sidebar -->
+  <div class="hdm-sidebar">
+    <div class="hdm-block" id="hdmBlock">
+      <div class="hdm-title">Hardware-Direktiven-Modul</div>
+      <div class="hdm-desc">
+        Physisch verankerte Ethik. Nicht als Software patchbar. Wie ein <span>Zwei-Schlüssel-System</span> oder ein <span>Sicherheitsdruckmodul</span> bei Banknoten.<br><br>
+        Unabhängig von Konzernen und Regierungen. Legitimiert durch Ebene 00.
+      </div>
+
+      <div class="hdm-arrows">
+        <div class="hdm-arrow-item">Filterregeln für Gateway</div>
+        <div class="hdm-arrow-item">Grundsätze für Ethik-Engine</div>
+        <div class="hdm-arrow-item">Eskalationspflicht für Enforcer</div>
+        <div class="hdm-arrow-item">Prüfrecht auf Audit-Logs</div>
+      </div>
+
+      <div class="hdm-gremium">
+        <div class="hdm-gremium-title">LEGITIMIERT DURCH</div>
+        <div class="gremium-member">
+          <span class="gremium-dot"></span>Philosophen
+          <span class="tooltip">Definieren die ethischen Grundprinzipien und prüfen innere Widersprüche im Regelwerk.</span>
+        </div>
+        <div class="gremium-member">
+          <span class="gremium-dot"></span>Kulturvertreter
+          <span class="tooltip">Verankern kulturelle Vielfalt — kein westlicher Universalismus, sondern philosophische Mehrsprachigkeit.</span>
+        </div>
+        <div class="gremium-member">
+          <span class="gremium-dot"></span>Techniker
+          <span class="tooltip">Übersetzen ethische Prinzipien in technisch umsetzbare Hardware-Direktiven.</span>
+        </div>
+        <div class="gremium-member">
+          <span class="gremium-dot"></span>Bürger
+          <span class="tooltip">Repräsentieren die Allgemeinheit — Legitimation durch demokratische Beteiligung.</span>
+        </div>
+        <div class="gremium-member">
+          <span class="gremium-dot"></span>Juristen
+          <span class="tooltip">Sichern rechtliche Verbindlichkeit und internationale Durchsetzbarkeit der Direktiven.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Feedback Loop SVG -->
+<div class="feedback-svg-wrap" id="feedbackSvg">
+  <svg id="loopSvg" viewBox="0 0 900 60" preserveAspectRatio="none">
+    <defs>
+      <marker id="arrowHDM" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#e8c547" opacity="0.7"/>
+      </marker>
+    </defs>
+    <path id="feedbackPath"
+      d="M 320,10 Q 320,50 500,50 Q 700,50 700,10"
+      fill="none" stroke="#e8c547" stroke-width="1"
+      stroke-dasharray="6,4" stroke-dashoffset="0"
+      opacity="0.45" marker-end="url(#arrowHDM)"/>
+    <text x="500" y="44" text-anchor="middle"
+      font-family="DM Mono, monospace" font-size="9"
+      fill="#e8c547" opacity="0.5" letter-spacing="1.5">FEEDBACK AN HDM</text>
+  </svg>
+</div>
+
+<!-- PLURALIS Gesamtübersicht -->
+<div class="pluralis-section">
+  <div class="pluralis-title">Das föderierte Ökosystem</div>
+  <div class="pluralis-desc">Das HDM-Schema ist eine Station innerhalb eines größeren Vorhabens. PLURALIS denkt KI nicht als zentralisiertes System, sondern als Netzwerk kulturell verankerter Instanzen, die miteinander im Dialog stehen ohne eine zu dominieren.</div>
+
+  <div class="pluralis-layers">
+
+    <div class="pluralis-layer">
+      <div class="layer-abbr">CPK</div>
+      <div class="layer-name">Kulturelle Perspektiv-KI</div>
+      <div class="layer-desc">Jede Kultur entwickelt ihre eigene KI-Variante, die aus ihrer philosophischen Tradition heraus denkt. Keine Hierarchie, keine Dominanz.</div>
+    </div>
+
+    <div class="pluralis-layer">
+      <div class="layer-abbr">SKI</div>
+      <div class="layer-name">Synthese-KI</div>
+      <div class="layer-desc">Vermittelt zwischen den CPKs. Sucht Gemeinsamkeiten ohne Unterschiede einzuebnen. Philosophische Mehrsprachigkeit als Methode.</div>
+    </div>
+
+    <div class="pluralis-layer">
+      <div class="layer-abbr">IKI</div>
+      <div class="layer-name">Implementations-KI</div>
+      <div class="layer-desc">Setzt die synthetisierten Entscheidungen in der realen Welt um. Immer mit Eskalationspflicht zurück zum Menschen.</div>
+    </div>
+
+    <div class="pluralis-layer" style="border-color: var(--hdm); opacity: 0.9;">
+      <div class="layer-abbr" style="color: var(--hdm);">HDM</div>
+      <div class="layer-name">Hardware-Direktiven-Modul</div>
+      <div class="layer-desc">Die physisch verankerte Ethikschicht, die alle drei Ebenen durchzieht. Nicht steuerbar durch eine einzelne Instanz.</div>
+    </div>
+
+  </div>
+
+  <div class="pluralis-hdm-note">
+    Das Rollout ist graduell gedacht: <span>Pilotstadt → Land → Länder → Kontinente.</span> Die nächste Generation wächst gemeinsam mit KI auf und entwickelt natürlich multiperspektivisches Denken. Das Ziel ist kein perfektes System, sondern ein lernfähiges, das den Menschen nie aus der Verantwortung entlässt.
+  </div>
+</div>
+
+<div class="feedback-note">
+  <div class="feedback-icon">↺</div>
+  <div class="feedback-text">
+    <strong>Lebendiger Feedback-Loop:</strong> Audit-Logs fließen zurück ans HDM-Gremium. Ethik ist kein statisches Dokument. Das Gremium tagt periodisch und aktualisiert das Modul wenn die Logs Muster zeigen, die niemand vorhergesehen hat. So bleibt das System lernfähig ohne unkontrollierbar zu werden.
+  </div>
+</div>
+
+<div class="footer-note">
+  Schema v1 · ChatGPT &nbsp;|&nbsp; HDM-Schicht · <em>KOBI</em> &amp; <em>Christian Schmidhuber</em> &nbsp;|&nbsp; Tooltips &amp; Glow · Le Chat &nbsp;|&nbsp; v4 · KOBI<br>
+  <strong>PLURALIS</strong> — Ein Konzept von Christian Schmidhuber, München · 2026
+</div>
+
+<script>
+  const hdmBlock = document.getElementById('hdmBlock');
+  let glowTimer = null;
+
+  function toggle(node) {
+    const wasActive = node.classList.contains('active');
+    document.querySelectorAll('.node, .node-00').forEach(n => n.classList.remove('active'));
+    if (!wasActive) {
+      node.classList.add('active');
+      if (node.classList.contains('hdm-connected')) triggerGlow();
+    }
+  }
+
+  function toggle00(node) {
+    const wasActive = node.classList.contains('active');
+    document.querySelectorAll('.node, .node-00').forEach(n => n.classList.remove('active'));
+    if (!wasActive) node.classList.add('active');
+  }
+
+  function triggerGlow() {
+    hdmBlock.classList.add('glow');
+    clearTimeout(glowTimer);
+    glowTimer = setTimeout(() => hdmBlock.classList.remove('glow'), 1200);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+
+  // Animate feedback loop
+  const feedbackPath = document.getElementById('feedbackPath');
+  let offset = 0;
+  function animateDash() {
+    offset -= 0.3;
+    feedbackPath.setAttribute('stroke-dashoffset', offset);
+    requestAnimationFrame(animateDash);
+  }
+  animateDash();
+
+  // Position feedback SVG
+  function positionFeedback() {
+    const pipeline = document.getElementById('pipeline');
+    const layout = document.querySelector('.layout');
+    const svg = document.getElementById('feedbackSvg');
+    if (!pipeline || !layout || !svg) return;
+    const pRect = pipeline.getBoundingClientRect();
+    const lRect = layout.getBoundingClientRect();
+    const pLeft = pRect.left - lRect.left;
+    const midPipe = pLeft + pRect.width / 2;
+    const hdmEl = document.querySelector('.hdm-sidebar');
+    if (!hdmEl) return;
+    const hRect = hdmEl.getBoundingClientRect();
+    const hdmMid = hRect.left - lRect.left + hRect.width / 2;
+    const scale = lRect.width / 900;
+    const x1 = midPipe / scale;
+    const x2 = hdmMid / scale;
+    const cx = (x1 + x2) / 2;
+    feedbackPath.setAttribute('d', `M ${x1},10 Q ${x1},50 ${cx},50 Q ${x2},50 ${x2},10`);
+    const txt = svg.querySelector('text');
+    if (txt) txt.setAttribute('x', cx);
+  }
+
+  window.addEventListener('load', positionFeedback);
+  window.addEventListener('resize', positionFeedback);
+</script>
+
+</body>
+</html>
