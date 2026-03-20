@@ -87,3 +87,4 @@ MISTRAL_API_KEY = "..."
 - provider-specific prompt templates
 - user authentication and shared logs
 - database storage instead of local jsonl
+v1.0: Comprehensive introduction to KOBI methodologyv1.1: Compact version for funding and academic use
