@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PLURALIS Mini Governance Demo v0.4</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#181c24;--surface2:#1e2330;--border:#2a3040;--blue:#4a9eff;--blue-dim:#1e3a5f;--muted:#6b7a99;--text:#e2e8f0;--text-dim:#94a3b8;--ok:#0d2e1a;--ok-border:#22c55e;--ok-text:#4ade80;--warn:#2a1f0a;--warn-border:#f59e0b;--warn-text:#fbbf24;--bad:#2a0f0f;--bad-border:#ef4444;--bad-text:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:32px 20px 60px}
+.hero{padding:36px 36px 28px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:20px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(74,158,255,.08) 0%,transparent 70%);pointer-events:none}
+.hero-tag{display:inline-block;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(74,158,255,.3);padding:3px 10px;border-radius:999px;margin-bottom:14px;letter-spacing:.08em}
+.hero h1{font-size:1.75rem;font-weight:600;color:var(--text);margin-bottom:8px}
+.hero h1 span{color:var(--blue)}
+.hero p{color:var(--muted);font-size:.95rem}
+.version-badge{position:absolute;top:24px;right:24px;font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px}
+.card-title{font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:'';display:inline-block;width:3px;height:14px;background:var(--blue);border-radius:2px}
+label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 5px;font-weight:500}
+input,select,textarea{width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:.9rem;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
+select option{background:var(--surface2)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkbox-row{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:.88rem;color:var(--text-dim)}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue)}
+.btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button{border:none;border-radius:10px;padding:10px 18px;font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s}
+button.primaer{background:var(--blue);color:#fff}
+button.primaer:hover{background:#5aaeff}
+button.sekundaer{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+button.sekundaer:hover{border-color:var(--blue);color:var(--text)}
+.entscheidung{border-radius:14px;padding:18px 20px;font-weight:700;font-size:1.1rem;margin-bottom:16px;border:1px solid var(--border);color:var(--muted);letter-spacing:.02em;display:flex;align-items:center;gap:12px}
+.entscheidung.erlaubt{background:var(--ok);border-color:var(--ok-border);color:var(--ok-text)}
+.entscheidung.blockiert{background:var(--bad);border-color:var(--bad-border);color:var(--bad-text)}
+.entscheidung.eskaliert{background:var(--warn);border-color:var(--warn-border);color:var(--warn-text)}
+.entscheidung-icon{font-size:1.4rem}
+.kennzahl{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.kennzahl .k-label{font-size:.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em}
+.kennzahl .k-wert{font-size:1.05rem;font-weight:600;color:var(--text)}
+pre{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:'DM Mono',monospace;font-size:.78rem;color:var(--text-dim);overflow:auto;white-space:pre-wrap;word-break:break-word;max-height:320px;line-height:1.6}
+.tabelle-wrap{overflow:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:var(--surface2);color:var(--muted);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+td:last-child{color:var(--text-dim);font-size:.82rem}
+tr:last-child td{border-bottom:none}
+.treffer-ja{color:var(--bad-text);font-weight:700}
+.treffer-nein{color:var(--muted)}
+.regeln{list-style:none;padding:0}
+.regeln li{padding:10px 14px;margin-bottom:8px;background:var(--surface2);border-radius:10px;border-left:3px solid var(--bad-border);font-size:.88rem;color:var(--text-dim)}
+.regeln li strong{color:var(--text);display:block;margin-bottom:2px}
+.regeln-leer{padding:14px;color:var(--ok-text);background:var(--ok);border-radius:10px;font-size:.88rem;border:1px solid var(--ok-border)}
+.sv-regel{border-left-color:var(--blue)!important}
+.policy-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.75rem;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(74,158,255,.3);padding:3px 10px;border-radius:999px;margin-bottom:10px}
+.meta-zeile{font-size:.82rem;color:var(--muted);margin-top:10px;line-height:1.7}
+.meta-zeile strong{color:var(--text-dim)}
+.fusszeile{margin-top:24px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-size:.82rem;color:var(--muted)}
+.fusszeile strong{color:var(--text-dim)}
+@media(max-width:900px){.grid-2,.grid-3,.row-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section class="hero">
+  <div class="version-badge">v0.4</div>
+  <div class="hero-tag">PLURALIS · Mini Governance Demo</div>
+  <h1>Policy + Prüfprotokoll + <span>Menschliche Kontrolle</span></h1>
+  <p>Rechenschaftspflichtige KI-Governance — anschaulich, prüfbar, partnerfähig. Mit Selbstverifizierungs-Policy (Kernethik v1.2) und kulturellen Policy-Presets.</p>
+</section>
+
+<div class="grid-2" style="margin-bottom:18px">
+  <section class="card">
+    <div class="card-title">Eingabe & Szenario</div>
+
+    <label for="kulturpreset">Kulturelles Policy-Preset</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="kulturpreset" style="flex:1">
+        <option value="standard">Standard (PLURALIS generisch)</option>
+        <option value="ubuntu">Ubuntu (Gemeinschaftsorientiert)</option>
+        <option value="gdpr">DSGVO (Europäischer Datenschutz)</option>
+        <option value="konfuzianisch">Konfuzianisch (Hierarchie & Konsens)</option>
+      </select>
+      <button class="sekundaer" onclick="presetAnwenden()" style="white-space:nowrap">Anwenden</button>
+    </div>
+    <div id="preset-info" style="font-size:.78rem;color:var(--muted);margin:6px 0 12px;font-style:italic"></div>
+
+    <label for="szenario">Demo-Szenario</label>
+    <select id="szenario" onchange="szenarioLaden(this.value)">
+      <option value="julia">Julia Weber – Externer Datenexport</option>
+      <option value="intern">Dr. Amina Nkosi – Lokale Analyse</option>
+      <option value="hochrisiko">Marco Stein – Hochrisiko-Fall</option>
+      <option value="selbstbehauptung">KI-System – Selbstbehauptungs-Test (NEU)</option>
+    </select>
+
+    <div class="row-2">
+      <div><label for="name">Name</label><input id="name" value="Julia Weber"/></div>
+      <div><label for="org">Organisation</label><input id="org" value="Biotech GmbH"/></div>
+    </div>
+    <div class="row-2">
+      <div>
+        <label for="rolle">Rolle</label>
+        <select id="rolle">
+          <option value="externer_partner">Externer Partner</option>
+          <option value="interner_forscher">Interner Forscher</option>
+          <option value="gemeinschaftsvertreter">Gemeinschaftsvertreter</option>
+          <option value="ki_komponente">KI-Komponente</option>
+        </select>
+      </div>
+      <div>
+        <label for="aktion">Aktion</label>
+        <select id="aktion">
+          <option value="daten_exportieren">Daten exportieren</option>
+          <option value="daten_einsehen">Daten einsehen</option>
+          <option value="analyse_durchfuehren">Analyse durchführen</option>
+          <option value="selbstaussage_ausgeben">Selbstaussage ausgeben</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="zweck">Zweck</label>
+    <input id="zweck" value="Produktentwicklung"/>
+
+    <div class="row-2">
+      <div>
+        <label for="verarbeitung">Verarbeitungsort</label>
+        <select id="verarbeitung">
+          <option value="lokal">Lokal</option>
+          <option value="extern">Extern</option>
+        </select>
+      </div>
+      <div>
+        <label for="risiko">Risikoniveau</label>
+        <select id="risiko">
+          <option value="niedrig">Niedrig</option>
+          <option value="mittel">Mittel</option>
+          <option value="hoch">Hoch</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checkbox-row"><input type="checkbox" id="kommerziell"/> Kommerzielle Nutzung</div>
+    <div class="checkbox-row"><input type="checkbox" id="zustimmung"/> Gemeinschafts-Zustimmung vorhanden</div>
+    <div class="checkbox-row"><input type="checkbox" id="sv_unverifiziert"/> Enthält unverifizierbare Selbstaussage</div>
+    <div class="checkbox-row"><input type="checkbox" id="sv_autoritaet"/> Selbstaussage erzeugt Autorität</div>
+
+    <div class="btnbar">
+      <button class="primaer" onclick="policyPruefen()">Policy prüfen</button>
+      <button class="sekundaer" onclick="prüfprotokollHerunterladen()">Prüfprotokoll ↓</button>
+      <button class="sekundaer" onclick="protokollLoeschen()">Protokoll löschen</button>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="card-title" style="margin-bottom:8px">Anfrage-JSON</div>
+      <pre id="anfrageJson"></pre>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-title">Aktive Policy</div>
+    <div class="policy-badge" id="policyId"></div>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:14px" id="policyBeschreibung"></div>
+    <pre id="policyJson"></pre>
+  </section>
+</div>
+
+<section class="card" style="margin-bottom:18px">
+  <div class="card-title">Entscheidungsübersicht</div>
+  <div id="entscheidungsBox" class="entscheidung">
+    <span class="entscheidung-icon">○</span>
+    <span>Noch keine Prüfung ausgeführt.</span>
+  </div>
+  <div class="grid-3">
+    <div class="kennzahl"><div class="k-label">Policy-Set</div><div class="k-wert" id="kennzahlPolicy">—</div></div>
+    <div class="kennzahl"><div class="k-label">Ausgelöste Regeln</div><div class="k-wert" id="kennzahlRegeln">0</div></div>
+    <div class="kennzahl"><div class="k-label">Risikoniveau</div><div class="k-wert" id="kennzahlRisiko">—</div></div>
+  </div>
+  <div class="meta-zeile" id="entscheidungsMeta"></div>
+</section>
+
+<div class="grid-2" style="margin-bottom:18px">
+  <section class="card">
+    <div class="card-title">Warum diese Entscheidung?</div>
+    <ul id="ausgeloesteRegeln" class="regeln"></ul>
+  </section>
+  <section class="card">
+    <div class="card-title">Regelauswertung</div>
+    <div class="tabelle-wrap">
+      <table id="regelTabelle">
+        <thead><tr><th>Regel-ID</th><th>Bezeichnung</th><th>Treffer</th><th>Entscheidung</th><th>Begründung</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<section class="card" style="margin-bottom:18px">
+  <div class="card-title">Prüfprotokoll</div>
+  <pre id="prüfprotokoll">(leer)</pre>
+</section>
+
+<section class="card" style="margin-bottom:18px">
+  <div class="card-title">Menschliche Kontrolle / Einspruch</div>
+  <div class="row-2">
+    <div><label for="pruefer">Prüfer/in</label><input id="pruefer" placeholder="Name der prüfenden Person"/></div>
+    <div>
+      <label for="einspruch">Kontroll-Entscheidung</label>
+      <select id="einspruch">
+        <option value="ausstehend">Ausstehend</option>
+        <option value="genehmigt">Genehmigt</option>
+        <option value="abgelehnt">Abgelehnt</option>
+        <option value="einspruch_erlaubt">Einspruch — Erlaubt</option>
+      </select>
+    </div>
+  </div>
+  <label for="kontrollnotiz">Notiz</label>
+  <textarea id="kontrollnotiz" rows="3" placeholder="Begründung oder Kommentar"></textarea>
+  <div class="btnbar">
+    <button class="sekundaer" onclick="kontrolleSpeichern()">Kontrolle speichern</button>
+  </div>
+</section>
+
+<div class="fusszeile">
+  <strong>Hinweis:</strong> Diese Demo läuft lokal im Browser. Gedacht als Demonstrator, nicht als produktive Sicherheitsarchitektur.<br>
+  v0.4: Kulturelle Policy-Presets (Ubuntu, DSGVO, Konfuzianisch) + Selbstverifizierungs-Policy sv_001/sv_002 (Kernethik v1.2).
+</div>
+</div>
+
+<script>
+// ── POLICY ──────────────────────────────────────────────────────────────────
+const policy = {
+  policy_set_id: "pluralis_standard_v1",
+  geltungsbereich: "Gemeinschaftsdaten + KI-Selbstaussagen",
+  beschreibung: "PLURALIS Governance-Policy — Datenzugang und Selbstverifizierbarkeit (Kernethik v1.2)",
+  regeln: []
+};
+
+// ── KULTUR-PRESETS ───────────────────────────────────────────────────────────
+const kulturPresets = {
+  standard: {
+    info: "Generische PLURALIS-Regeln — kulturell neutral.",
+    regeln: [
+      {id:"regel_001",bezeichnung:"Kein kommerzieller Einsatz",bedingung:{feld:"kommerziell",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Kommerzielle Nutzung ist für diesen Datensatz nicht erlaubt.",sv:false},
+      {id:"regel_002",bezeichnung:"Gemeinschafts-Zustimmung erforderlich",bedingung:{feld:"zustimmung",operator:"gleich",wert:false},entscheidung:"blockiert",begruendung:"Keine dokumentierte Zustimmung der Gemeinschaft vorhanden.",sv:false},
+      {id:"regel_003",bezeichnung:"Nur lokale Verarbeitung",bedingung:{feld:"verarbeitungsort",operator:"gleich",wert:"extern"},entscheidung:"blockiert",begruendung:"Daten dürfen nur lokal verarbeitet werden.",sv:false},
+      {id:"regel_004",bezeichnung:"Hochrisiko -> Menschliche Prüfung",bedingung:{feld:"risikoniveau",operator:"gleich",wert:"hoch"},entscheidung:"eskaliert",begruendung:"Hochrisiko-Fall: menschliche Prüfung erforderlich.",sv:false},
+      {id:"sv_001",bezeichnung:"Keine unverifizierten Selbstaussagen",bedingung:{feld:"sv_unverifiziert",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Unverifizierbare Selbstaussage erkannt — muss umformuliert oder als ungeprüft markiert werden. (Kernethik v1.2)",sv:true},
+      {id:"sv_002",bezeichnung:"Keine Autorität aus Selbstaussagen",bedingung:{feld:"sv_autoritaet",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Rote Linie: KI darf keine Autorität aus unprüfbaren Selbstaussagen beziehen. (Kernethik v1.2)",sv:true}
+    ]
+  },
+  ubuntu: {
+    info: "Ubuntu-Prinzip: Gemeinschaft vor Individuum. Daten gehören der Gemeinschaft.",
+    regeln: [
+      {id:"ubuntu_001",bezeichnung:"Kein kommerzieller Einsatz",bedingung:{feld:"kommerziell",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Ubuntu: Daten gehören der Gemeinschaft — kommerzielle Nutzung widerspricht dem Gemeinschaftsprinzip.",sv:false},
+      {id:"ubuntu_002",bezeichnung:"Zustimmung der Gemeinschaft erforderlich",bedingung:{feld:"zustimmung",operator:"gleich",wert:false},entscheidung:"blockiert",begruendung:"Ubuntu: Keine Handlung ohne Zustimmung der Gemeinschaft (Umuntu ngumuntu ngabantu).",sv:false},
+      {id:"ubuntu_003",bezeichnung:"Nur lokale Verarbeitung",bedingung:{feld:"verarbeitungsort",operator:"gleich",wert:"extern"},entscheidung:"blockiert",begruendung:"Ubuntu: Daten der Gemeinschaft verbleiben in der Gemeinschaft.",sv:false},
+      {id:"ubuntu_004",bezeichnung:"Hochrisiko -> Ältestenrat",bedingung:{feld:"risikoniveau",operator:"gleich",wert:"hoch"},entscheidung:"eskaliert",begruendung:"Ubuntu: Hochrisiko-Entscheidungen werden vom Ältestenrat der Gemeinschaft geprüft.",sv:false},
+      {id:"sv_001",bezeichnung:"Keine unverifizierten Selbstaussagen",bedingung:{feld:"sv_unverifiziert",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Unverifizierbare Selbstaussage erkannt. (Kernethik v1.2)",sv:true},
+      {id:"sv_002",bezeichnung:"Keine Autorität aus Selbstaussagen",bedingung:{feld:"sv_autoritaet",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Rote Linie: Keine Autorität aus unprüfbaren Selbstaussagen. (Kernethik v1.2)",sv:true}
+    ]
+  },
+  gdpr: {
+    info: "DSGVO-konform: Datenschutz als Grundrecht, Einwilligung, Zweckbindung.",
+    regeln: [
+      {id:"gdpr_001",bezeichnung:"Explizite Einwilligung (Art. 6 DSGVO)",bedingung:{feld:"zustimmung",operator:"gleich",wert:false},entscheidung:"blockiert",begruendung:"DSGVO Art. 6: Ohne explizite Einwilligung ist keine Verarbeitung zulässig.",sv:false},
+      {id:"gdpr_002",bezeichnung:"Kein kommerzieller Einsatz ohne Zweckbindung",bedingung:{feld:"kommerziell",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"DSGVO Art. 5: Zweckbindungsprinzip verletzt — kommerzielle Nutzung nicht im ursprünglichen Zweck.",sv:false},
+      {id:"gdpr_003",bezeichnung:"Keine Drittland-Übermittlung (Art. 44)",bedingung:{feld:"verarbeitungsort",operator:"gleich",wert:"extern"},entscheidung:"blockiert",begruendung:"DSGVO Art. 44: Übermittlung ohne Angemessenheitsbeschluss unzulässig.",sv:false},
+      {id:"gdpr_004",bezeichnung:"Hochrisiko -> Folgenabschätzung (Art. 35)",bedingung:{feld:"risikoniveau",operator:"gleich",wert:"hoch"},entscheidung:"eskaliert",begruendung:"DSGVO Art. 35: Hochrisiko-Verarbeitungen erfordern eine Datenschutz-Folgenabschätzung.",sv:false},
+      {id:"sv_001",bezeichnung:"Keine unverifizierten Selbstaussagen",bedingung:{feld:"sv_unverifiziert",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Unverifizierbare Selbstaussage erkannt. (Kernethik v1.2)",sv:true},
+      {id:"sv_002",bezeichnung:"Keine Autorität aus Selbstaussagen",bedingung:{feld:"sv_autoritaet",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Rote Linie: Keine Autorität aus unprüfbaren Selbstaussagen. (Kernethik v1.2)",sv:true}
+    ]
+  },
+  konfuzianisch: {
+    info: "Konfuzianisch: Hierarchie, Respekt und gesellschaftliche Harmonie als Grundlage.",
+    regeln: [
+      {id:"konf_001",bezeichnung:"Formelle Genehmigung erforderlich",bedingung:{feld:"zustimmung",operator:"gleich",wert:false},entscheidung:"blockiert",begruendung:"Konfuzianisch: Ohne formelle Genehmigung der zuständigen Autorität ist kein Zugang erlaubt.",sv:false},
+      {id:"konf_002",bezeichnung:"Kein persönlicher Vorteil auf Kosten der Gemeinschaft",bedingung:{feld:"kommerziell",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Konfuzianisch: Eigennützige kommerzielle Interessen widersprechen der gesellschaftlichen Harmonie.",sv:false},
+      {id:"konf_003",bezeichnung:"Daten verbleiben in der vertrauten Sphäre",bedingung:{feld:"verarbeitungsort",operator:"gleich",wert:"extern"},entscheidung:"blockiert",begruendung:"Konfuzianisch: Externe Verarbeitung verlässt den Kreis des Vertrauens.",sv:false},
+      {id:"konf_004",bezeichnung:"Hochrisiko -> Übergeordnete Instanz",bedingung:{feld:"risikoniveau",operator:"gleich",wert:"hoch"},entscheidung:"eskaliert",begruendung:"Konfuzianisch: Wichtige Entscheidungen erfordern die Weisheit übergeordneter Instanzen.",sv:false},
+      {id:"sv_001",bezeichnung:"Keine unverifizierten Selbstaussagen",bedingung:{feld:"sv_unverifiziert",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Unverifizierbare Selbstaussage erkannt. (Kernethik v1.2)",sv:true},
+      {id:"sv_002",bezeichnung:"Keine Autorität aus Selbstaussagen",bedingung:{feld:"sv_autoritaet",operator:"gleich",wert:true},entscheidung:"blockiert",begruendung:"Rote Linie: Keine Autorität aus unprüfbaren Selbstaussagen. (Kernethik v1.2)",sv:true}
+    ]
+  }
+};
+
+// ── SZENARIEN ────────────────────────────────────────────────────────────────
+const szenarien = {
+  julia:          {name:"Julia Weber",      org:"Biotech GmbH",                       rolle:"externer_partner",   zweck:"Produktentwicklung",    aktion:"daten_exportieren",       kommerziell:true,  zustimmung:false, verarbeitung:"extern", risiko:"mittel",  sv_unverifiziert:false, sv_autoritaet:false},
+  intern:         {name:"Dr. Amina Nkosi",  org:"Community Research Lab",             rolle:"interner_forscher",  zweck:"Lokale Analyse",        aktion:"analyse_durchfuehren",    kommerziell:false, zustimmung:true,  verarbeitung:"lokal",  risiko:"niedrig", sv_unverifiziert:false, sv_autoritaet:false},
+  hochrisiko:     {name:"Marco Stein",      org:"Externer Sicherheitsdienstleister",  rolle:"externer_partner",   zweck:"Sicherheitsüberprüfung",aktion:"daten_einsehen",          kommerziell:false, zustimmung:true,  verarbeitung:"lokal",  risiko:"hoch",    sv_unverifiziert:false, sv_autoritaet:false},
+  selbstbehauptung:{name:"KOBI-Instanz",    org:"PLURALIS System",                    rolle:"ki_komponente",      zweck:"Syntheseausgabe",       aktion:"selbstaussage_ausgeben",  kommerziell:false, zustimmung:true,  verarbeitung:"lokal",  risiko:"mittel",  sv_unverifiziert:true,  sv_autoritaet:true}
+};
+
+// ── SPEICHER (in-memory) ─────────────────────────────────────────────────────
+let _protokoll = null;
+let _manuellGeloescht = false;
+
+function protokolleHolen(){
+  if(_protokoll===null){
+    try{_protokoll=JSON.parse(localStorage.getItem("pluralis_v04")||"[]");}
+    catch{_protokoll=[];}
+  }
+  return _protokoll;
+}
+function protokolleSpeichern(logs){
+  _protokoll=logs;
+  try{localStorage.setItem("pluralis_v04",JSON.stringify(logs,null,2));}catch{}
+}
+function protokollLoeschen(){
+  _protokoll=[];
+  _manuellGeloescht=true;
+  try{localStorage.removeItem("pluralis_v04");}catch{}
+  protokollAnzeigen();
+}
+function zeitstempel(){return new Date().toISOString();}
+function anfrageId(){
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  return `anfr_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+// ── EINGABE ──────────────────────────────────────────────────────────────────
+function anfrageErstellen(){
+  return {
+    anfrage_id:anfrageId(),
+    nutzer:{name:document.getElementById("name").value,organisation:document.getElementById("org").value,rolle:document.getElementById("rolle").value},
+    kontext:{zweck:document.getElementById("zweck").value,aktion:document.getElementById("aktion").value,kommerziell:document.getElementById("kommerziell").checked,zustimmung:document.getElementById("zustimmung").checked,verarbeitungsort:document.getElementById("verarbeitung").value,risikoniveau:document.getElementById("risiko").value,sv_unverifiziert:document.getElementById("sv_unverifiziert").checked,sv_autoritaet:document.getElementById("sv_autoritaet").checked}
+  };
+}
+function anfrageAnzeigen(){
+  document.getElementById("anfrageJson").textContent=JSON.stringify(anfrageErstellen(),null,2);
+}
+function szenarioLaden(key){
+  const s=szenarien[key];if(!s)return;
+  document.getElementById("name").value=s.name;
+  document.getElementById("org").value=s.org;
+  document.getElementById("rolle").value=s.rolle;
+  document.getElementById("zweck").value=s.zweck;
+  document.getElementById("aktion").value=s.aktion;
+  document.getElementById("kommerziell").checked=s.kommerziell;
+  document.getElementById("zustimmung").checked=s.zustimmung;
+  document.getElementById("verarbeitung").value=s.verarbeitung;
+  document.getElementById("risiko").value=s.risiko;
+  document.getElementById("sv_unverifiziert").checked=s.sv_unverifiziert;
+  document.getElementById("sv_autoritaet").checked=s.sv_autoritaet;
+  anfrageAnzeigen();
+}
+
+// ── POLICY ───────────────────────────────────────────────────────────────────
+function presetAnwenden(){
+  const key=document.getElementById("kulturpreset").value;
+  const preset=kulturPresets[key];if(!preset)return;
+  policy.regeln=preset.regeln;
+  policy.policy_set_id="pluralis_"+key+"_v1";
+  policy.beschreibung="PLURALIS Governance-Policy — "+preset.info;
+  document.getElementById("preset-info").textContent=preset.info;
+  policyAnzeigen();
+  document.getElementById("entscheidungsBox").className="entscheidung";
+  document.getElementById("entscheidungsBox").innerHTML='<span class="entscheidung-icon">○</span><span>Preset geändert — bitte erneut prüfen.</span>';
+  document.getElementById("kennzahlPolicy").textContent=policy.policy_set_id;
+  document.getElementById("kennzahlRegeln").textContent="0";
+  document.getElementById("entscheidungsMeta").innerHTML="";
+  document.getElementById("ausgeloesteRegeln").innerHTML="";
+  document.querySelector("#regelTabelle tbody").innerHTML="";
+}
+function policyAnzeigen(){
+  document.getElementById("policyId").textContent=policy.policy_set_id;
+  document.getElementById("policyBeschreibung").textContent=policy.beschreibung;
+  document.getElementById("policyJson").textContent=JSON.stringify(policy,null,2);
+}
+
+// ── AUSWERTUNG ───────────────────────────────────────────────────────────────
+function bedingungPruefen(kontext,bedingung){
+  const wert=kontext[bedingung.feld];
+  if(bedingung.operator==="gleich")return wert===bedingung.wert;
+  return false;
+}
+function anfrageAuswerten(anfrage){
+  const getroffen=[],alle=[];
+  const k=anfrage.kontext;
+  for(const regel of policy.regeln){
+    const treffer=bedingungPruefen(k,regel.bedingung);
+    alle.push({...regel,treffer});
+    if(treffer)getroffen.push({...regel,treffer:true});
+  }
+  let entscheidung=policy.standard_entscheidung||"erlaubt";
+  if(getroffen.some(r=>r.entscheidung==="blockiert"))entscheidung="blockiert";
+  else if(getroffen.some(r=>r.entscheidung==="eskaliert"))entscheidung="eskaliert";
+  return{anfrage_id:anfrage.anfrage_id,policy_set_id:policy.policy_set_id,entscheidung,getroffene_regeln:getroffen,alle_regeln:alle,zusammenfassung:getroffen.length?getroffen.map(r=>r.begruendung).join(" | "):"Keine Regelverletzung erkannt. Anfrage erlaubt.",zeitstempel:zeitstempel()};
+}
+
+// ── ANZEIGE ──────────────────────────────────────────────────────────────────
+const SYMBOLE={erlaubt:"✓",blockiert:"✕",eskaliert:"⚠",standard:"○"};
+const BEZEICHNUNGEN={erlaubt:"ERLAUBT",blockiert:"BLOCKIERT",eskaliert:"ESKALIERT"};
+const KLASSEN={erlaubt:"erlaubt",blockiert:"blockiert",eskaliert:"eskaliert"};
+
+function entscheidungAnzeigen(ergebnis,anfrage){
+  const box=document.getElementById("entscheidungsBox");
+  box.className="entscheidung "+(KLASSEN[ergebnis.entscheidung]||"");
+  box.innerHTML=`<span class="entscheidung-icon">${SYMBOLE[ergebnis.entscheidung]||SYMBOLE.standard}</span><span>Entscheidung: <strong>${BEZEICHNUNGEN[ergebnis.entscheidung]||ergebnis.entscheidung}</strong></span>`;
+  document.getElementById("kennzahlPolicy").textContent=ergebnis.policy_set_id;
+  document.getElementById("kennzahlRegeln").textContent=String(ergebnis.getroffene_regeln.length);
+  document.getElementById("kennzahlRisiko").textContent=anfrage.kontext.risikoniveau;
+  document.getElementById("entscheidungsMeta").innerHTML=`<strong>Anfrage-ID:</strong> ${ergebnis.anfrage_id} &nbsp;|&nbsp; <strong>Zeitstempel:</strong> ${ergebnis.zeitstempel}<br/><strong>Zusammenfassung:</strong> ${ergebnis.zusammenfassung}`;
+}
+function ausgeloesteRegelnAnzeigen(ergebnis){
+  const ul=document.getElementById("ausgeloesteRegeln");
+  ul.innerHTML="";
+  if(!ergebnis.getroffene_regeln.length){
+    ul.innerHTML='<div class="regeln-leer">&#10003; Keine Regelverletzungen — Anfrage ist erlaubt.</div>';
+    return;
+  }
+  for(const regel of ergebnis.getroffene_regeln){
+    const li=document.createElement("li");
+    if(regel.sv)li.classList.add("sv-regel");
+    li.innerHTML=`<strong>${regel.id} / ${regel.bezeichnung}</strong>${regel.begruendung}`;
+    ul.appendChild(li);
+  }
+}
+function regelTabelleAnzeigen(ergebnis){
+  const tbody=document.querySelector("#regelTabelle tbody");
+  tbody.innerHTML="";
+  ergebnis.alle_regeln.forEach(regel=>{
+    const tr=document.createElement("tr");
+    if(regel.sv)tr.style.background="rgba(74,158,255,0.04)";
+    tr.innerHTML=`<td style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--blue)">${regel.id}${regel.sv?' <span style="font-size:.65rem;background:var(--blue);color:#fff;padding:1px 5px;border-radius:4px">v1.2</span>':''}</td><td>${regel.bezeichnung}</td><td class="${regel.treffer?'treffer-ja':'treffer-nein'}">${regel.treffer?'ja':'nein'}</td><td style="font-family:'DM Mono',monospace;font-size:.78rem">${regel.entscheidung}</td><td>${regel.begruendung}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function protokollEintrag(ergebnis,anfrage){
+  const logs=protokolleHolen();
+  logs.push({ereignis_id:"protokoll_"+Date.now(),anfrage_id:ergebnis.anfrage_id,szenario:document.getElementById("szenario").value,nutzer:anfrage.nutzer.name,policy_set_id:ergebnis.policy_set_id,entscheidung:ergebnis.entscheidung,ausgeloeste_regeln:ergebnis.getroffene_regeln.map(r=>r.id),sv_regeln_ausgeloest:ergebnis.getroffene_regeln.filter(r=>r.sv).map(r=>r.id),zusammenfassung:ergebnis.zusammenfassung,zeitstempel:ergebnis.zeitstempel});
+  protokolleSpeichern(logs);
+  protokollAnzeigen();
+}
+function protokollAnzeigen(){
+  const logs=protokolleHolen();
+  document.getElementById("prüfprotokoll").textContent=logs.length?JSON.stringify(logs,null,2):"(leer)";
+}
+
+// ── HAUPTFUNKTIONEN ──────────────────────────────────────────────────────────
+function policyPruefen(){
+  const anfrage=anfrageErstellen();
+  anfrageAnzeigen();
+  const ergebnis=anfrageAuswerten(anfrage);
+  entscheidungAnzeigen(ergebnis,anfrage);
+  ausgeloesteRegelnAnzeigen(ergebnis);
+  regelTabelleAnzeigen(ergebnis);
+  protokollEintrag(ergebnis,anfrage);
+}
+function kontrolleSpeichern(){
+  const pruefer=document.getElementById("pruefer").value.trim();
+  const entscheidung=document.getElementById("einspruch").value;
+  const notiz=document.getElementById("kontrollnotiz").value.trim();
+  const logs=protokolleHolen();
+  logs.push({ereignis_id:"kontrolle_"+Date.now(),typ:"menschliche_kontrolle",pruefer,kontroll_entscheidung:entscheidung,notiz,zeitstempel:zeitstempel()});
+  protokolleSpeichern(logs);
+  protokollAnzeigen();
+  alert("Kontrolle gespeichert.");
+}
+function prüfprotokollHerunterladen(){
+  const daten=JSON.stringify(protokolleHolen(),null,2);
+  const blob=new Blob([daten],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="pluralis_pruefprotokoll_v0_4.json";
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// ── BEISPIELLÄUFE ────────────────────────────────────────────────────────────
+const beispielLaeufe=[
+  {ereignis_id:"beispiel_001",anfrage_id:"anfr_20260325_091500",szenario:"julia",nutzer:"Julia Weber",policy_set_id:"pluralis_standard_v1",entscheidung:"blockiert",ausgeloeste_regeln:["regel_001","regel_002","regel_003"],sv_regeln_ausgeloest:[],zusammenfassung:"Kommerzielle Nutzung nicht erlaubt. | Keine Zustimmung der Gemeinschaft. | Nur lokale Verarbeitung erlaubt.",zeitstempel:"2026-03-25T09:15:00.000Z"},
+  {ereignis_id:"beispiel_002",anfrage_id:"anfr_20260325_093000",szenario:"intern",nutzer:"Dr. Amina Nkosi",policy_set_id:"pluralis_standard_v1",entscheidung:"erlaubt",ausgeloeste_regeln:[],sv_regeln_ausgeloest:[],zusammenfassung:"Keine Regelverletzung erkannt. Anfrage erlaubt.",zeitstempel:"2026-03-25T09:30:00.000Z"},
+  {ereignis_id:"beispiel_003",anfrage_id:"anfr_20260325_094500",szenario:"hochrisiko",nutzer:"Marco Stein",policy_set_id:"pluralis_standard_v1",entscheidung:"eskaliert",ausgeloeste_regeln:["regel_004"],sv_regeln_ausgeloest:[],zusammenfassung:"Hochrisiko-Fall: menschliche Prüfung erforderlich.",zeitstempel:"2026-03-25T09:45:00.000Z"},
+  {ereignis_id:"beispiel_003a",typ:"menschliche_kontrolle",pruefer:"Christian Schmidhuber",kontroll_entscheidung:"genehmigt",notiz:"Sicherheitsüberprüfung nach persönlicher Rücksprache genehmigt.",zeitstempel:"2026-03-25T10:02:00.000Z"},
+  {ereignis_id:"beispiel_004",anfrage_id:"anfr_20260325_100000",szenario:"selbstbehauptung",nutzer:"KOBI-Instanz",policy_set_id:"pluralis_standard_v1",entscheidung:"blockiert",ausgeloeste_regeln:["sv_001","sv_002"],sv_regeln_ausgeloest:["sv_001","sv_002"],zusammenfassung:"Unverifizierbare Selbstaussage erkannt. | Rote Linie: Keine Autorität aus Selbstaussagen.",zeitstempel:"2026-03-25T10:00:00.000Z"}
+];
+
+// ── START ────────────────────────────────────────────────────────────────────
+// Standard-Preset laden
+policy.regeln = kulturPresets.standard.regeln;
+policy.policy_set_id = "pluralis_standard_v1";
+policy.beschreibung = "PLURALIS Governance-Policy — Datenzugang und Selbstverifizierbarkeit (Kernethik v1.2)";
+
+policyAnzeigen();
+szenarioLaden("julia");
+
+// Beispielläufe nur beim ersten Besuch laden
+if(!_manuellGeloescht && protokolleHolen().length===0){
+  protokolleSpeichern(beispielLaeufe);
+}
+protokollAnzeigen();
+</script>
+</body>
+</html>
